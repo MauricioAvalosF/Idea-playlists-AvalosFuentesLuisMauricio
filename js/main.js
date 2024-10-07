@@ -1,24 +1,29 @@
-const canciones = [
-    { titulo: "Sunflower", artista: "Post Malone", color: "#142663" },
-    { titulo: "Shape of You", artista: "Ed Sheeran", color: "#207237" },
-    { titulo: "Blinding Lights", artista: "The Weeknd", color: "#735226" },
-    { titulo: "Levitating", artista: "Dua Lipa", color: "#114703" },
-    { titulo: "Dance Monkey", artista: "Tones and I", color: "#776416" },
-    { titulo: "Old Town Road", artista: "Lil Nas X", color: "#206622" },
-    { titulo: "Rockstar", artista: "DaBaby", color: "#235612" },
-    { titulo: "Watermelon Sugar", artista: "Harry Styles", color: "#435730" },
-    { titulo: "Senorita", artista: "Shawn Mendes", color: "#377753" },
-    { titulo: "Good 4 U", artista: "Olivia Rodrigo", color: "#666132" }
-];
+// const canciones = [
+//     { titulo: "Sunflower", artista: "Post Malone", color: "#142663" },
+//     { titulo: "Shape of You", artista: "Ed Sheeran", color: "#207237" },
+//     { titulo: "Blinding Lights", artista: "The Weeknd", color: "#735226" },
+//     { titulo: "Levitating", artista: "Dua Lipa", color: "#114703" },
+//     { titulo: "Dance Monkey", artista: "Tones and I", color: "#776416" },
+//     { titulo: "Old Town Road", artista: "Lil Nas X", color: "#206622" },
+//     { titulo: "Rockstar", artista: "DaBaby", color: "#235612" },
+//     { titulo: "Watermelon Sugar", artista: "Harry Styles", color: "#435730" },
+//     { titulo: "Senorita", artista: "Shawn Mendes", color: "#377753" },
+//     { titulo: "Good 4 U", artista: "Olivia Rodrigo", color: "#666132" }
+// ];
+
+let currentAudio = null;
+
+fetch("https://discoveryprovider.audius.co/v1/tracks/trending?app_name=ExampleApp")
+    .then((resp) => resp.json())
+    .then((data) => cargarCanciones(data.data));
 
 document.addEventListener("DOMContentLoaded", () => {
-    cargarCanciones();
     cargarPlaylist();
     cargarFavoritas();
 });
 
 // Función para cargar las canciones desde el array al HTML
-function cargarCanciones() {
+function cargarCanciones(canciones) {
     const cancionesDiv = document.getElementById('canciones');
     cancionesDiv.innerHTML = '<h2>Canciones</h2>';
 
@@ -27,11 +32,12 @@ function cargarCanciones() {
         cancionDiv.classList.add('cancion');
         cancionDiv.style.backgroundColor = cancion.color;
         cancionDiv.innerHTML = `
-            <h3>${cancion.titulo}</h3>
-            <p>${cancion.artista}</p>
-            <button onclick="agregarAPlaylist('${cancion.titulo}', '${cancion.artista}', true, '${cancion.color}')">Agregar al inicio</button>
-            <button onclick="agregarAPlaylist('${cancion.titulo}', '${cancion.artista}', false, '${cancion.color}')">Agregar al final</button>
-            <button onclick="agregarAFavoritas('${cancion.titulo}', '${cancion.artista}', '${cancion.color}')">Agregar a favoritas</button>
+            <h3>${cancion.title}</h3>
+            <p>${cancion.genre}</p>
+            <button onclick="agregarAPlaylist('${cancion.title}', '${cancion.genre}', true, '${cancion.color}')">Agregar al inicio</button>
+            <button onclick="agregarAPlaylist('${cancion.title}', '${cancion.genre}', false, '${cancion.color}')">Agregar al final</button>
+            <button onclick="agregarAFavoritas('${cancion.title}', '${cancion.genre}', '${cancion.color}')">Agregar a favoritas</button>
+            <button class="escuchar" onclick="playSong('${cancion.id}')">Play</button>
         `;
         cancionesDiv.appendChild(cancionDiv);
     });
@@ -43,7 +49,7 @@ function agregarAPlaylist(titulo, artista, alInicio, color) {
     const cancion = { titulo, artista, color };
 
     if (alInicio) {
-        playlist.unshift({ ...cancion }); 
+        playlist.unshift({ ...cancion });
     } else {
         playlist.push({ ...cancion });
     }
@@ -65,7 +71,7 @@ function agregarAFavoritas(titulo, artista, color) {
     let favoritas = JSON.parse(localStorage.getItem('favoritas')) || [];
     const cancion = { titulo, artista, color };
 
-    favoritas.push({ ...cancion }); 
+    favoritas.push({ ...cancion });
     localStorage.setItem('favoritas', JSON.stringify(favoritas));
     cargarFavoritas();
 }
@@ -81,14 +87,14 @@ function eliminarDeFavoritas(index) {
 // Renderiza la playlist desde sessionStorage
 function cargarPlaylist() {
     const playlistDiv = document.getElementById('playlist');
-    playlistDiv.innerHTML = '<h2>Playlist</h2>'; 
+    playlistDiv.innerHTML = '<h2>Playlist</h2>';
 
     const playlist = JSON.parse(sessionStorage.getItem('playlist')) || [];
-    
+
     playlist.forEach((cancion, index) => {
         const cancionDiv = document.createElement('div');
         cancionDiv.classList.add('cancion');
-        cancionDiv.style.backgroundColor = cancion.color; 
+        cancionDiv.style.backgroundColor = cancion.color;
         cancionDiv.innerHTML = `
             <h3>${cancion.titulo}</h3>
             <p>${cancion.artista}</p>
@@ -104,11 +110,11 @@ function cargarFavoritas() {
     favoritasDiv.innerHTML = '<h2>Favoritas</h2>';
 
     const favoritas = JSON.parse(localStorage.getItem('favoritas')) || [];
-    
+
     favoritas.forEach((cancion, index) => {
         const cancionDiv = document.createElement('div');
         cancionDiv.classList.add('cancion');
-        cancionDiv.style.backgroundColor = cancion.color; 
+        cancionDiv.style.backgroundColor = cancion.color;
         cancionDiv.innerHTML = `
             <h3>${cancion.titulo}</h3>
             <p>${cancion.artista}</p>
@@ -116,4 +122,38 @@ function cargarFavoritas() {
         `;
         favoritasDiv.appendChild(cancionDiv);
     });
+}
+
+
+function getRandomDarkColor() {
+    // Generar un color RGB oscuro
+    const r = Math.floor(Math.random() * 128); // Rango de 0 a 127 (colores oscuros)
+    const g = Math.floor(Math.random() * 128); // Rango de 0 a 127 (colores oscuros)
+    const b = Math.floor(Math.random() * 128); // Rango de 0 a 127 (colores oscuros)
+
+    // Convertir a formato hexadecimal
+    const darkColor = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+    
+    return darkColor;
+}
+
+// Función para reproducir la canción
+function playSong(trackId) {
+    // Si ya hay un audio reproduciéndose, deténlo
+    if (currentAudio) {
+        currentAudio.pause(); // Detener la reproducción
+        currentAudio.currentTime = 0; // Reiniciar a 0 si lo deseas
+    }
+
+    // Crea un nuevo audio para la nueva canción
+    currentAudio = new Audio(`https://discoveryprovider.audius.co/v1/tracks/${trackId}/stream?app_name=ExampleApp`);
+    
+    // Reproduce la nueva canción
+    currentAudio.play()
+        .then(() => {
+            console.log('Reproduciendo canción...');
+        })
+        .catch((error) => {
+            console.error('Error al reproducir la canción:', error);
+        });
 }
