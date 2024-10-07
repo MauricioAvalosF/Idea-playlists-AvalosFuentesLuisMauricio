@@ -124,19 +124,6 @@ function cargarFavoritas() {
     });
 }
 
-
-function getRandomDarkColor() {
-    // Generar un color RGB oscuro
-    const r = Math.floor(Math.random() * 128); // Rango de 0 a 127 (colores oscuros)
-    const g = Math.floor(Math.random() * 128); // Rango de 0 a 127 (colores oscuros)
-    const b = Math.floor(Math.random() * 128); // Rango de 0 a 127 (colores oscuros)
-
-    // Convertir a formato hexadecimal
-    const darkColor = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-    
-    return darkColor;
-}
-
 // Función para reproducir la canción
 function playSong(trackId) {
     // Si ya hay un audio reproduciéndose, deténlo
